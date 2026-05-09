@@ -1,12 +1,18 @@
 import requests
-import json
 import chromadb
 import pandas as pd
-from chromadb.utils import embedding_functions
+import json
+import os
+
+from dotenv import load_dotenv
+from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+
+load_dotenv()
 
 # Config
 DATA_PATH = "https://tcp-us-prod-rnd.shl.com/voiceRater/shl-ai-hiring/shl_product_catalog.json"
 DB_PATH = "./chroma_db"
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 def run_ingestion():
     # Download Catalog
@@ -14,9 +20,9 @@ def run_ingestion():
     try:
         res = requests.get(DATA_PATH)
         res.raise_for_status()
-        raw_data = res.json()
+        raw_data = json.loads(res.text, strict=False)
     except Exception as e:
-        print("Error downloading data")
+        print(f"Error downloading data: {e}")
         return
     
     # Cleaning and Transformation
@@ -27,8 +33,15 @@ def run_ingestion():
 
     # Initialize Vector DB
     client = chromadb.PersistentClient(path=DB_PATH)
-    model = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
-    collection = client.get_or_create_collection("shl_assessment", embedding_function=model)
+
+    embedding_function = SentenceTransformerEmbeddingFunction(
+        model_name="all-MiniLM-L6-v2"
+    )
+
+    collection = client.get_or_create_collection(
+        name="shl_assessments",
+        embedding_function=embedding_function
+    )
 
     docs, metas, ids = [], [], []
 
@@ -38,7 +51,7 @@ def run_ingestion():
         keys = ", ".join(row["keys"]) if isinstance(row["keys"], list) else str(row["keys"])
 
         search_text = (
-            f"Assessment: {row["name"]}. "
+            f"Assessment: {row['name']}. "
             f"Description: {row['description']}. "
             f"Target Levels: {job_levels}. "
             f"Categories: {keys}."
