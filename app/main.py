@@ -9,7 +9,6 @@ app = FastAPI()
 
 @app.get("/health")
 def health():
-    """Required health check for the assignment."""
     return {"status": "ok"}
 
 @app.post("/chat", response_model=ChatResponse)

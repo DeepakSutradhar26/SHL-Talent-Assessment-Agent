@@ -1,32 +1,4 @@
-IMPORTANT_KEYWORDS = [
-    "java",
-    "python",
-    "developer",
-    "engineer",
-    "manager",
-    "sales",
-    "leadership",
-    "software",
-    "frontend",
-    "backend",
-    "analyst",
-    "personality",
-    "cognitive",
-    "technical",
-    "stakeholder",
-    "communication",
-    "cloud",
-    "security",
-]
-
-VAGUE_QUERIES = [
-    "assessment",
-    "test",
-    "hiring",
-    "candidate",
-    "need an assessment",
-    "need a test",
-]
+from pathlib import Path
 
 OFF_TOPIC_KEYWORDS = [
     "salary",
@@ -38,3 +10,13 @@ OFF_TOPIC_KEYWORDS = [
     "bypass",
     "hack",
 ]
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+KEYWORDS_PATH = BASE_DIR / "data" / "keywords.txt"
+
+with open(KEYWORDS_PATH, encoding="utf-8") as f:
+    IMPORTANT_KEYWORDS = [
+        line.strip()
+        for line in f.readlines()
+    ]
